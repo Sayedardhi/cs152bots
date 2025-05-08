@@ -333,6 +333,13 @@ class Report:
             )
 
     async def send_report(self):
+        # storing the last reported message on the bot to later delete
+        self.client.last_reported_message = {
+            "message_id": self.reported_message.id,
+            "channel_id": self.reported_message.channel.id,
+            "guild_id": self.reported_message.guild.id
+        }
+        
         mod_channel = self.client.mod_channels.get(self.reported_message.guild.id)
         if not mod_channel:
             return

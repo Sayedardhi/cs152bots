@@ -89,6 +89,35 @@ class ModBot(discord.Client):
             view.add_item(discord.ui.Button(label="Frequent Misreporter", style=discord.ButtonStyle.danger, custom_id="disagree_frequent"))
             await interaction.response.send_message("Please select the appropriate reporter category:", view=view, ephemeral=True)
 
+        # handle the decisions according to flow chart
+        elif custom_id == "agree_first" or custom_id == "agree_repeat":
+            await interaction.response.send_message("Action recorded. Offending message deleted. Timeout applied.", ephemeral=True)
+            
+            # deleting the offending message
+            try:
+                data = self.last_reported_message
+                guild = self.get_guild(data["guild_id"])
+                channel = guild.get_channel(data["channel_id"])
+                offending_message = await channel.fetch_message(data["message_id"])
+                await offending_message.delete()
+            except Exception as e:
+                print(f"[ERROR] Could not delete offending message: {e}")
+                await mod_channel.send("Error: Could not delete the offending message.")
+
+            if custom_id == "agree_first":
+                await mod_channel.send("Moderator marked user as first-time offender. Post deleted and timeout applied.")
+            else:
+                await mod_channel.send("Moderator marked user as repeat offender. Post deleted and escalation applied.")
+
+        elif custom_id == "disagree_first":
+            await interaction.response.send_message("Action recorded: Report dismissed. No further action required.", ephemeral=True)
+            await mod_channel.send("Moderator disagreed with the report. No action taken.")
+
+        elif custom_id == "disagree_frequent":
+            await interaction.response.send_message("Action recorded: Reporter flagged for frequent misreporting.", ephemeral=True)
+            await mod_channel.send("Reporter has been flagged as a frequent misreporter. Future reports may be suppressed.")
+
+
     async def handle_dm(self, message):
         # Handle a help message
         if message.content == Report.HELP_KEYWORD:
