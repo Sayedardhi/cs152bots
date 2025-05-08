@@ -173,6 +173,9 @@ class Report:
         return view
 
     async def handle_message(self, message):
+        # saving the reporter id to later send a message to them
+        self.reporter = message.author
+
         if message.content == self.CANCEL_KEYWORD:
             self.state = State.REPORT_COMPLETE
             return ["Report cancelled."]
@@ -337,7 +340,9 @@ class Report:
         self.client.last_reported_message = {
             "message_id": self.reported_message.id,
             "channel_id": self.reported_message.channel.id,
-            "guild_id": self.reported_message.guild.id
+            "guild_id": self.reported_message.guild.id,
+            "author": self.reported_message.author,
+            "reporter": self.reporter
         }
         
         mod_channel = self.client.mod_channels.get(self.reported_message.guild.id)

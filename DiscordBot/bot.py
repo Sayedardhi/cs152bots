@@ -104,10 +104,29 @@ class ModBot(discord.Client):
                 print(f"[ERROR] Could not delete offending message: {e}")
                 await mod_channel.send("Error: Could not delete the offending message.")
 
+            #messaging the author of the offending message
+            user = self.last_reported_message["author"]
+
+            try:
+                if custom_id == "agree_first":
+                    await user.send(
+                        "Your account has been restricted on this server for one day due to offensive posts.\n"
+                        "Please take a moment to consult with this resource: TO FILL IN"
+                        "If you believe this was a mistake, you may respond to this message or contact a moderator."
+                    )
+                else:
+                    await user.send(
+                        "Your account has been banned from this server due to repeated offensive posts.\n"
+                        "If you believe this was a mistake, you may respond to this message or contact a moderator."
+                    )
+
+            except discord.Forbidden:
+                await mod_channel.send(f"Could not DM {user.name} due to their privacy settings.")
+
             if custom_id == "agree_first":
-                await mod_channel.send("Moderator marked user as first-time offender. Post deleted and timeout applied.")
+                await mod_channel.send("Moderator marked user as first-time offender. Post deleted and recieved one day timeout.")
             else:
-                await mod_channel.send("Moderator marked user as repeat offender. Post deleted and escalation applied.")
+                await mod_channel.send("Moderator marked user as repeat offender. Post deleted and user banned from server.")
 
         elif custom_id == "disagree_first":
             await interaction.response.send_message("Action recorded: Report dismissed. No further action required.", ephemeral=True)
@@ -116,6 +135,19 @@ class ModBot(discord.Client):
         elif custom_id == "disagree_frequent":
             await interaction.response.send_message("Action recorded: Reporter flagged for frequent misreporting.", ephemeral=True)
             await mod_channel.send("Reporter has been flagged as a frequent misreporter. Future reports may be suppressed.")
+
+            #messaging the frequent misreporter
+            try:
+                reporter = self.last_reported_message["reporter"]
+                await reporter.send(
+                    "Your recent reports have been reviewed and deemed not offensive.\n"
+                    "Please only use the reporting feature for genuine community violations. "
+                    "Your account has internal flags restricting your behavior on this server."
+                )
+            except Exception as e:
+                await mod_channel.send("Failed to notify the reporter via DM.")
+                print(f"[DM ERROR] Could not message reporter: {e}")
+
 
 
     async def handle_dm(self, message):
