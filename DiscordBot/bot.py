@@ -72,6 +72,23 @@ class ModBot(discord.Client):
         else:
             await self.handle_dm(message)
 
+    async def on_interaction(self, interaction: discord.Interaction):
+        custom_id = interaction.data.get("custom_id", "")
+        mod_channel = self.mod_channels.get(interaction.guild_id)
+
+        # follow up after the basic agree/disagree to first time or frequent offender
+        if custom_id == "mod_agree":
+            view = discord.ui.View(timeout=600)
+            view.add_item(discord.ui.Button(label="First-Time Offender", style=discord.ButtonStyle.success, custom_id="agree_first"))
+            view.add_item(discord.ui.Button(label="Repeat Offender", style=discord.ButtonStyle.primary, custom_id="agree_repeat"))
+            await interaction.response.send_message("Please select the appropriate offender category:", view=view, ephemeral=True)
+
+        elif custom_id == "mod_disagree":
+            view = discord.ui.View(timeout=600)
+            view.add_item(discord.ui.Button(label="First-Time Misreporter", style=discord.ButtonStyle.secondary, custom_id="disagree_first"))
+            view.add_item(discord.ui.Button(label="Frequent Misreporter", style=discord.ButtonStyle.danger, custom_id="disagree_frequent"))
+            await interaction.response.send_message("Please select the appropriate reporter category:", view=view, ephemeral=True)
+
     async def handle_dm(self, message):
         # Handle a help message
         if message.content == Report.HELP_KEYWORD:

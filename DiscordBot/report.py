@@ -357,7 +357,12 @@ class Report:
             embed.color = discord.Color.dark_red()
             embed.title = "⚠️ " + embed.title
 
-        await mod_channel.send(embed=embed)
+        initial_view = discord.ui.View(timeout=600)
+        initial_view.add_item(discord.ui.Button(label="Agree", style=discord.ButtonStyle.success, custom_id="mod_agree"))
+        initial_view.add_item(discord.ui.Button(label="Disagree", style=discord.ButtonStyle.danger, custom_id="mod_disagree"))
+
+        await mod_channel.send(embed=embed, view=initial_view)
+        # await mod_channel.send(embed=embed)
 
     def report_complete(self):
         return self.state == State.REPORT_COMPLETE
