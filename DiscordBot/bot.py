@@ -9,6 +9,7 @@ import requests
 from report import Report
 import pdb
 from discord.ui import Button, View
+from detect_report import classify_message
 
 # Set up logging to the console
 logger = logging.getLogger('discord')
@@ -201,7 +202,9 @@ class ModBot(discord.Client):
         TODO: Once you know how you want to evaluate messages in your channel, 
         insert your code here! This will primarily be used in Milestone 3. 
         '''
-        return message
+        label, score = classify_message(message) #classify the message 
+        offensive = label == 'cyberbullying' #if labeled as cyberbullying 
+        return {'is_offensive': offensive, 'confidence': score}
 
     
     def code_format(self, text):
@@ -210,7 +213,7 @@ class ModBot(discord.Client):
         evaluated, insert your code here for formatting the string to be 
         shown in the mod channel. 
         '''
-        return "Evaluated: '" + text+ "'"
+        return f"Evaluated {text} as {text['is_offensive']}"
 
     async def block_user(self, user_to_block, blocked_by):
         """Implement the logic to block a user"""
