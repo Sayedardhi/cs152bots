@@ -190,30 +190,35 @@ class ModBot(discord.Client):
         # Only handle messages sent in the "group-#" channel
         if not message.channel.name == f'group-{self.group_num}':
             return
-
-        # Forward the message to the mod channel
         mod_channel = self.mod_channels[message.guild.id]
+        labels, probs = predict_message(message.content)
+        #Added - if offensive with confidence > 90%, we delete. 
+        if labels == "cyberbully" and probs.max().item() > 0.90:
+            try:
+                await message.delete()
+                await mod_channel.send(
+                    f"Auto‐deleted a message from `{message.author.name}` "
+                    f"due to high offensive score ({probs.max().item():.2f})."
+                )
+            except Exception as e:
+                print(f"[ERROR] Could not auto-delete: {e}")
+                await mod_channel.send(
+                    "Error: Tried to auto-delete a high‐confidence offensive message but failed."
+                )
+            return  # done—don’t forward or do any further handling
+        # Forward the message to the mod channel
         await mod_channel.send(f'Forwarded message:\n{message.author.name}: "{message.content}"')
         scores = self.eval_text(message.content)
         await mod_channel.send(self.code_format(scores))
 
     
     def eval_text(self, message):
-        ''''
-        TODO: Once you know how you want to evaluate messages in your channel, 
-        insert your code here! This will primarily be used in Milestone 3. 
-        '''
         label, prob = predict_message(message)
         offensive = (label == 'cyberbully')
         return {'is_offensive': offensive, 'confidence': prob.max()}
 
     
     def code_format(self, text):
-        ''''
-        TODO: Once you know how you want to show that a message has been 
-        evaluated, insert your code here for formatting the string to be 
-        shown in the mod channel. 
-        '''
         return f"Evaluated as offensive = {text['is_offensive']} with confidence = {text['confidence']}"
 
 
