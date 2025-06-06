@@ -114,7 +114,6 @@ class ModBot(discord.Client):
                 if custom_id == "agree_first":
                     await user.send(
                         "Your account has been restricted on this server for one day due to offensive posts.\n"
-                        "Please take a moment to consult with this resource: TO FILL IN"
                         "If you believe this was a mistake, you may respond to this message or contact a moderator."
                     )
                 else:
